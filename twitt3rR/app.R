@@ -45,23 +45,23 @@ server <- function(input, output) {
     curTweets <- get_timeline(input$User, n=10) %>% 
       select(text)
     
-    data<- unnest_tokens(curTweets)
+    data<- unnest_tokens(curTweets, word, text)
     cleaned_data<- data %>% 
       anti_join(get_stopwords())
     cleaned_data %>% 
       count(word, sort = TRUE)
     
     nrc <- get_sentiments("nrc")
-    # 
-    # newTweets <- cleaned_data %>% 
-    #   inner_join(nrc) %>% 
-    #   count(word, index = line %/% 80, sentiment) %>% 
-    #   spread(sentiment, n, fill=0) %>% 
-    #   mutate(sentiment = positive-negative)
-    # 
-    # ggplot(newTweets, aes(index, sentiment, fill=word))+
-    #   geom_bar(stat="identity", show.legend = FALSE)
-    # 
+
+    newTweets <- cleaned_data %>%
+      inner_join(nrc) %>%
+      count(word, sentiment) %>%
+      spread(sentiment, n, fill=0) %>%
+      mutate(sentiment = positive-negative)
+
+    ggplot(newTweets, aes(word, sentiment, fill=word))+
+      geom_bar(stat="identity", show.legend = FALSE)
+
     
   })
   
