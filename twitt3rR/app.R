@@ -45,7 +45,10 @@ server <- function(input, output) {
     curTweets <- get_timeline(input$User, n=10) %>% 
       select(text)
     
+    data<- unnest_tokens(curTweets)
     
+    ggplot(data)+
+      geom_histogram()
   })
   
   
