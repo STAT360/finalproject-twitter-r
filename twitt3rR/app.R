@@ -26,7 +26,7 @@ ui <- fluidPage(
     mainPanel(
       dataTableOutput("presidents"),
       plotOutput("wordPlot"),
-      plotOutput("wordCloud"),
+      #plotOutput("wordCloud"),
       plotOutput("goodBadWords")
     )
   )
@@ -68,18 +68,18 @@ server <- function(input, output) {
 
     
   })
-  
-  output$wordCloud<- renderPlot({
-    curTweets <- get_timeline(input$User, n=10) %>% 
-      select(text)
-    
-    data<- unnest_tokens(curTweets, word, text)
-    cleaned_data<- data %>% 
-      anti_join(get_stopwords())
-    cleaned_data %>% 
-      count(word) %>% 
-      with(wordcloud(word, n, max.words = 100))
-  })
+  # Do we want this???
+  # output$wordCloud<- renderPlot({
+  #   curTweets <- get_timeline(input$User, n=10) %>% 
+  #     select(text)
+  #   
+  #   data<- unnest_tokens(curTweets, word, text)
+  #   cleaned_data<- data %>% 
+  #     anti_join(get_stopwords())
+  #   cleaned_data %>% 
+  #     count(word) %>% 
+  #     with(wordcloud(word, n, max.words = 100))
+  # })
   
   output$goodBadWords<- renderPlot({
     curTweets<- get_timeline(input$User, n=10) %>% 
@@ -91,7 +91,7 @@ server <- function(input, output) {
       count(word, sentiment, sort = TRUE) %>% 
       acast(word ~ sentiment, value.var = "n", fill = 0) %>% 
       comparison.cloud(colors = c("#F8766D", "#00BFC4"),
-                       max.words = 100)
+                       max.words = 50)
   })
   
   
