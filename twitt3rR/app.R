@@ -15,8 +15,11 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      textInput("Text", h3("Twitter Handle"), 
-                value = "Enter Twitter Handle...")
+      selectInput("User", label=("Choose a twitter user to display"), 
+                choices = c("POTUS",
+                            "BarackObama",
+                            "GeorgeWBush"),
+                selected = "POTUS")
     ),
     mainPanel(
       textOutput("value")
@@ -27,7 +30,9 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   output$value <- renderText({
-    paste("Tweet analysis of", input$Text)
+    paste("Tweet analysis of", input$User)
+    userName <- input$User
+    get_timeline(userName, n=10)
   })
   
   
