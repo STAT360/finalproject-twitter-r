@@ -23,7 +23,7 @@ ui <- fluidPage(
     ),
     mainPanel(
       textOutput("value"),
-      dataTableOutput("presidents")
+      dataTableOutput("presidents"),
       plotOutput("wordPlot")
     )
   )
@@ -46,9 +46,23 @@ server <- function(input, output) {
       select(text)
     
     data<- unnest_tokens(curTweets)
+    cleaned_data<- data %>% 
+      anti_join(get_stopwords())
+    cleaned_data %>% 
+      count(word, sort = TRUE)
     
-    ggplot(data)+
-      geom_histogram()
+    nrc <- get_sentiments("nrc")
+    # 
+    # newTweets <- cleaned_data %>% 
+    #   inner_join(nrc) %>% 
+    #   count(word, index = line %/% 80, sentiment) %>% 
+    #   spread(sentiment, n, fill=0) %>% 
+    #   mutate(sentiment = positive-negative)
+    # 
+    # ggplot(newTweets, aes(index, sentiment, fill=word))+
+    #   geom_bar(stat="identity", show.legend = FALSE)
+    # 
+    
   })
   
   
