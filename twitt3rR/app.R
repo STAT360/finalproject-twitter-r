@@ -15,17 +15,20 @@ ui <- fluidPage(
   
   sidebarLayout(
     sidebarPanel(
-      thing<- textInput("Text", h3("Twitter Handle"), 
+      textInput("Text", h3("Twitter Handle"), 
                 value = "Enter Twitter Handle...")
     ),
     mainPanel(
+      textOutput("value")
     )
   )
   
 )
 
 server <- function(input, output) {
-  print(thing)
+  output$value <- renderText({
+    paste("Tweet analysis of", input$Text)
+  })
   
   
   
