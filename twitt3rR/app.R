@@ -9,6 +9,7 @@ library(purrr)
 library(scales)
 library(rtweet)
 library(wordcloud)
+library(reshape2)
 trump_tweets <- load(url("http://varianceexplained.org/files/trump_tweets_df.rda"))
 
 ui <- fluidPage(
@@ -62,7 +63,8 @@ server <- function(input, output) {
       mutate(sentiment = positive-negative)
 
     ggplot(newTweets, aes(word, sentiment, fill=word))+
-      geom_bar(stat="identity", show.legend = FALSE)
+      geom_bar(stat="identity", show.legend = FALSE)+
+      coord_flip()
 
     
   })
