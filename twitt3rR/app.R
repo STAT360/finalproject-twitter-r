@@ -8,6 +8,7 @@ library(tidyr)
 library(purrr)
 library(scales)
 library(rtweet)
+library(wordcloud)
 trump_tweets <- load(url("http://varianceexplained.org/files/trump_tweets_df.rda"))
 
 ui <- fluidPage(
@@ -18,13 +19,14 @@ ui <- fluidPage(
       selectInput("User", label=("Choose a twitter user to display"), 
                 choices = c("POTUS",
                             "BarackObama",
-                            "GeorgeWBush"),
+                            "JebBush"),
                 selected = "POTUS")
     ),
     mainPanel(
       textOutput("value"),
       dataTableOutput("presidents"),
-      plotOutput("wordPlot")
+      plotOutput("wordPlot"),
+      plotOutput("wordCloud")
     )
   )
   
@@ -63,6 +65,18 @@ server <- function(input, output) {
       geom_bar(stat="identity", show.legend = FALSE)
 
     
+  })
+  
+  output$wordCloud<- renderPlot({
+    curTweets <- get_timeline(input$User, n=10) %>% 
+      select(text)
+    
+    data<- unnest_tokens(curTweets, word, text)
+    cleaned_data<- data %>% 
+      anti_join(get_stopwords())
+    cleaned_data %>% 
+      count(word) %>% 
+      with(wordcloud(word, n, max.words = 100))
   })
   
   
