@@ -24,6 +24,7 @@ ui <- fluidPage(
     mainPanel(
       textOutput("value"),
       dataTableOutput("presidents")
+      plotOutput("wordPlot")
     )
   )
   
@@ -31,14 +32,22 @@ ui <- fluidPage(
 
 server <- function(input, output) {
   output$value <- renderText({
-    paste("Tweet analysis of", input$User)
+    paste("Tweet analysis of:", input$User)
     
   })
   
   output$presidents <- renderDataTable({
-    get_timeline(input$User, n= 10) %>% 
+    curTweets <- get_timeline(input$User, n=10) %>% 
       select(text)
   })
+  
+  output$wordPlot <- renderPlot({
+    curTweets <- get_timeline(input$User, n=10) %>% 
+      select(text)
+    
+    
+  })
+  
   
   
 }
