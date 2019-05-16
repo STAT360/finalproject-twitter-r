@@ -24,7 +24,6 @@ ui <- fluidPage(
                 selected = "POTUS")
     ),
     mainPanel(
-      textOutput("value"),
       dataTableOutput("presidents"),
       plotOutput("wordPlot"),
       plotOutput("wordCloud"),
@@ -40,10 +39,10 @@ server <- function(input, output) {
     
   })
   
-  output$presidents <- renderDataTable({
-    curTweets <- get_timeline(input$User, n=10) %>% 
-      select(text)
-  })
+  # output$presidents <- renderDataTable({
+  #   curTweets <- get_timeline(input$User, n=10) %>% 
+  #     select(text)
+  # })
   
   output$wordPlot <- renderPlot({
     curTweets <- get_timeline(input$User, n=10) %>% 
