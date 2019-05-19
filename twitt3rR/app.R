@@ -83,10 +83,9 @@ server <- function(input, output) {
   output$timePlot<- renderPlot({
     curTweets <- get_timeline(input$User, n=10) %>% 
       select(text,created_at) %>% 
-      count(hour = hour(with_tz(created_at, "CST"))) %>% 
-      mutate(count= n)
+      count(hour = hour(with_tz(created_at, "America/Chicago")))
     ggplot(curTweets)+
-      geom_bar(aes(x=hour, y=count))
+      geom_bar(aes(x=hour))
   })
   
   # Do we want this???
