@@ -18,10 +18,13 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("User", label=("Choose a twitter user to display"), 
-                choices = c("POTUS",
+                choices = c("RealDonaldTrump",
                             "BarackObama",
-                            "JebBush"),
-                selected = "POTUS")
+                            "JebBush",
+                            "fritzsfoodtruck",
+                            "twitt3r_R"),
+                selected = "POTUS"),
+      htmlOutput("userImage")
     ),
     mainPanel(
       dataTableOutput("presidents"),
@@ -39,10 +42,19 @@ server <- function(input, output) {
     
   })
   
-  # output$presidents <- renderDataTable({
-  #   curTweets <- get_timeline(input$User, n=10) %>% 
-  #     select(text)
-  # })
+  output$userImage<- renderText({
+    curTweets<- get_timeline(input$User, n=1) %>%
+      pull("profile_image_url")
+    display<- c('<img src = "',
+                  curTweets,
+                  '">')
+    return(display)
+  })
+  
+  output$presidents <- renderDataTable({
+    curTweets <- get_timeline(input$User, n=10) %>% 
+      filter(is_retweet == FALSE)
+  })
   
   output$wordPlot <- renderPlot({
     curTweets <- get_timeline(input$User, n=10) %>% 
