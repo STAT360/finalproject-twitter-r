@@ -81,11 +81,14 @@ server <- function(input, output) {
       coord_flip()
   })
   output$timePlot<- renderPlot({
-    curTweets <- get_timeline(input$User, n=10) %>% 
+    curTweets <- get_timeline(input$User, n=100) %>% 
       select(text,created_at) %>% 
-      count(hour = hour(with_tz(created_at, "America/Chicago")))
+      count(hour = hour(with_tz(created_at, "America/Chicago"))) %>% 
+      mutate(countn = n)
     ggplot(curTweets)+
-      geom_bar(aes(x=hour))
+      geom_line(aes(x=hour, y=countn))+
+      labs(x = "Hour of day", y= "frequency")+
+      ggtitle("All of this person's tweets")
   })
   
   # Do we want this???
