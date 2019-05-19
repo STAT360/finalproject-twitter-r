@@ -77,9 +77,11 @@ server <- function(input, output) {
     ggplot(newTweets, aes(word, sentiment, fill=word))+
       geom_bar(stat="identity", show.legend = FALSE)+
       coord_flip()
-
+  })
+  output$timePlot<- renderPlot({
     
   })
+  
   # Do we want this???
   # output$wordCloud<- renderPlot({
   #   curTweets <- get_timeline(input$User, n=10) %>% 
