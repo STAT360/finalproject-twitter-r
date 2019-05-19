@@ -18,7 +18,8 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       selectInput("User", label=("Choose a twitter user to display"), 
-                choices = c("RealDonaldTrump",
+                choices = c("AmeliaMN",
+                            "RealDonaldTrump",
                             "BarackObama",
                             "JebBush",
                             "fritzsfoodtruck",
@@ -30,7 +31,8 @@ ui <- fluidPage(
       dataTableOutput("presidents"),
       plotOutput("wordPlot"),
       #plotOutput("wordCloud"),
-      plotOutput("goodBadWords")
+      plotOutput("goodBadWords"),
+      plotOutput("timePlot")
     )
   )
   
@@ -79,7 +81,12 @@ server <- function(input, output) {
       coord_flip()
   })
   output$timePlot<- renderPlot({
-    
+    curTweets <- get_timeline(input$User, n=10) %>% 
+      select(text,created_at) %>% 
+      count(hour = hour(with_tz(created_at, "CST"))) %>% 
+      mutate(count= n)
+    ggplot(curTweets)+
+      geom_bar(aes(x=hour, y=count))
   })
   
   # Do we want this???
