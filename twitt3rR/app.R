@@ -25,14 +25,16 @@ ui <- fluidPage(
                             "fritzsfoodtruck",
                             "twitt3r_R"),
                 selected = "POTUS"),
-      htmlOutput("userImage")
+      htmlOutput("userImage", height = 1000, width = 1000)
+      #how do this ^^^?
     ),
     mainPanel(
-      dataTableOutput("presidents"),
       plotOutput("wordPlot"),
       #plotOutput("wordCloud"),
       plotOutput("goodBadWords"),
-      plotOutput("timePlot")
+      plotOutput("timePlot"),
+      plotOutput("wordCount"),
+      dataTableOutput("presidents")
     )
   )
   
@@ -88,7 +90,24 @@ server <- function(input, output) {
     ggplot(curTweets)+
       geom_line(aes(x=hour, y=countn))+
       labs(x = "Hour of day", y= "frequency")+
-      ggtitle("All of this person's tweets")
+      ggtitle("All of this person's tweets")+
+      scale_x_continuous()
+  })
+  output$wordCount<- renderPlot({
+    curTweets<- get_timeline(input$User, n=100) %>% 
+      filter(is_retweet == FALSE) %>% 
+      select(text)
+      
+    data<- unnest_tokens(curTweets, word, text)
+    cleaned_data<- data %>% 
+      anti_join(get_stopwords())
+      
+    cleaned_data %>% 
+      count(word, sort = TRUE) %>% 
+      filter(n > 2) %>% 
+      ggplot(aes(word,n))+
+        geom_bar(stat = "identity")+
+        coord_flip()
   })
   
   # Do we want this???
