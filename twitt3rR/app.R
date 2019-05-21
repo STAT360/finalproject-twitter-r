@@ -10,6 +10,7 @@ library(scales)
 library(rtweet)
 library(wordcloud)
 library(reshape2)
+library(ggthemes)
 trump_tweets <- load(url("http://varianceexplained.org/files/trump_tweets_df.rda"))
 
 ui <- fluidPage(
@@ -70,13 +71,15 @@ server <- function(input, output) {
     cleaned_data %>% 
       count(word, sort = TRUE)
     
-    nrc <- get_sentiments("nrc")
+    nrc <- get_sentiments("bing")
 
     newTweets <- cleaned_data %>%
       inner_join(nrc) %>%
       count(word, sentiment) %>%
       spread(sentiment, n, fill=0) %>%
-      mutate(sentiment = positive-negative)
+      mutate(sentiment = positive-negative) %>% 
+      arrange(desc(sentiment)) %>% 
+      mutate(word = fct_reorder(word,sentiment))
 
     ggplot(newTweets, aes(word, sentiment, fill=word))+
       geom_bar(stat="identity", show.legend = FALSE)+
@@ -89,7 +92,7 @@ server <- function(input, output) {
       mutate(countn = n)
     ggplot(curTweets)+
       geom_line(aes(x=hour, y=countn))+
-      labs(x = "Hour of day", y= "frequency")+
+      labs(x = "Hour of day(CT)", y= "Frequency")+
       ggtitle("All of this person's tweets")+
       scale_x_continuous()
   })
@@ -100,28 +103,21 @@ server <- function(input, output) {
       
     data<- unnest_tokens(curTweets, word, text)
     cleaned_data<- data %>% 
-      anti_join(get_stopwords())
+      anti_join(get_stopwords()) %>% 
+      filter(!(word %in% c("https", "t.co")))
       
     cleaned_data %>% 
       count(word, sort = TRUE) %>% 
-      filter(n > 2) %>% 
-      ggplot(aes(word,n))+
+      #summarise(total = n()) %>% 
+      #arrange(desc(total)) %>%
+      head(20) %>% 
+      mutate(word = reorder(word, n)) %>% 
+      ggplot(aes(word,n, fill=n))+
         geom_bar(stat = "identity")+
-        coord_flip()
+        scale_fill_distiller(palette = "Blues")+
+        coord_flip()+
+        labs(x = "Word used", y = "Frequency", title = "Word frequency")
   })
-  
-  # Do we want this???
-  # output$wordCloud<- renderPlot({
-  #   curTweets <- get_timeline(input$User, n=10) %>% 
-  #     select(text)
-  #   
-  #   data<- unnest_tokens(curTweets, word, text)
-  #   cleaned_data<- data %>% 
-  #     anti_join(get_stopwords())
-  #   cleaned_data %>% 
-  #     count(word) %>% 
-  #     with(wordcloud(word, n, max.words = 100))
-  # })
   
   output$goodBadWords<- renderPlot({
     curTweets<- get_timeline(input$User, n=10) %>% 
