@@ -11,30 +11,47 @@ library(rtweet)
 library(wordcloud)
 library(reshape2)
 library(ggthemes)
-trump_tweets <- load(url("http://varianceexplained.org/files/trump_tweets_df.rda"))
 
 ui <- fluidPage(
-  titlePanel("Twitt3rR"),
+  titlePanel("Advanced Twitt3rR Sentiment Scrutiny"),
   
   sidebarLayout(
     sidebarPanel(
       selectInput("User", label=("Choose a twitter user to display"), 
-                choices = c("AmeliaMN",
+                choices = c("ameliamn",
                             "RealDonaldTrump",
                             "BarackObama",
                             "JebBush",
                             "fritzsfoodtruck",
-                            "twitt3r_R"),
+                            "twitt3r_R",
+                            "drob",
+                            "HadleyWickham",
+                            "JennyBryan",
+                            "rstudio"),
                 selected = "POTUS"),
+      p("By selecting an input from the dropdown menu, the application will then pull the
+        selected Public Twitter User's last 100 tweets from their timeline using the rtweet
+        package's function 'get_timeline()'. Here is the
+        profile picture of the currently selected user:"),
       htmlOutput("userImage", height = 1000, width = 1000)
-      #how do this ^^^?
+      
     ),
     mainPanel(
       plotOutput("wordPlot"),
-      #plotOutput("wordCloud"),
+      p("In the above plot, the 20 most commonly used words from the selected User's 
+        Twitter account are displayed according to their sentiment. Sentiment is calculated
+         using bing's lexicon and the tidytext package. A positive number reflects a positive
+         word sentiment, and vice versa."),
       plotOutput("goodBadWords"),
+      p("Above is a word cloud representing word sentiment. Larger words have a more significant
+        sentiment score. A blue coloring represents a positive sentiment,
+         and red represents negative."),
       plotOutput("timePlot"),
+      p("The above plot shows the frequency of the selected User's tweets by time of day."),
       plotOutput("wordCount"),
+      p("The above plot shows the 20 most frequently used words by the User, and the frequency 
+        at which they occur in their last 100 tweets."),
+      p("Below is the selected User's last 100 tweets in their raw form received from Twitter:"),
       dataTableOutput("presidents")
     )
   )
@@ -42,17 +59,13 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-  output$value <- renderText({
-    paste("Tweet analysis of:", input$User)
-    
-  })
   
   output$userImage<- renderText({
     curTweets<- get_timeline(input$User, n=1) %>%
       pull("profile_image_url")
     display<- c('<img src = "',
                   curTweets,
-                  '">')
+                  '" height = 100 width = 100>')
     return(display)
   })
   
@@ -60,6 +73,7 @@ server <- function(input, output) {
     curTweets <- get_timeline(input$User, n=10) %>% 
       filter(is_retweet == FALSE)
   })
+  
   
   output$wordPlot <- renderPlot({
     curTweets <- get_timeline(input$User, n=10) %>% 
@@ -71,19 +85,21 @@ server <- function(input, output) {
     cleaned_data %>% 
       count(word, sort = TRUE)
     
-    nrc <- get_sentiments("bing")
+    bing <- get_sentiments("bing")
 
     newTweets <- cleaned_data %>%
-      inner_join(nrc) %>%
+      inner_join(bing) %>%
       count(word, sentiment) %>%
       spread(sentiment, n, fill=0) %>%
       mutate(sentiment = positive-negative) %>% 
       arrange(desc(sentiment)) %>% 
       mutate(word = fct_reorder(word,sentiment))
 
-    ggplot(newTweets, aes(word, sentiment, fill=word))+
+    ggplot(newTweets, aes(word, sentiment, fill=sentiment))+
       geom_bar(stat="identity", show.legend = FALSE)+
-      coord_flip()
+      coord_flip()+
+      labs(title = "Sentiment Analysis", x="Word Used", y="Sentiment Score")+
+      theme(plot.title = element_text(hjust = .5, size = 30))
   })
   output$timePlot<- renderPlot({
     curTweets <- get_timeline(input$User, n=100) %>% 
@@ -91,10 +107,11 @@ server <- function(input, output) {
       count(hour = hour(with_tz(created_at, "America/Chicago"))) %>% 
       mutate(countn = n)
     ggplot(curTweets)+
-      geom_line(aes(x=hour, y=countn))+
-      labs(x = "Hour of day(CT)", y= "Frequency")+
-      ggtitle("All of this person's tweets")+
-      scale_x_continuous()
+      geom_line(aes(x=hour, y=countn), color = "DodgerBlue4", size = 2)+
+      labs(x = "Hour of Day (CT)", y= "Frequency")+
+      ggtitle("Tweet Frequency by Time of Day")+
+      scale_x_continuous(breaks = c(0,5,10,15,20),labels = c("12AM", "5AM", "10AM", "3PM", "8PM"))+
+      theme(plot.title = element_text(hjust = .5, size = 30))
   })
   output$wordCount<- renderPlot({
     curTweets<- get_timeline(input$User, n=100) %>% 
@@ -116,7 +133,8 @@ server <- function(input, output) {
         geom_bar(stat = "identity")+
         scale_fill_distiller(palette = "Blues")+
         coord_flip()+
-        labs(x = "Word used", y = "Frequency", title = "Word frequency")
+        labs(x = "Word Used", y = "Frequency", title = "Word Frequency")+
+        theme(plot.title = element_text(hjust = .5, size = 30))
   })
   
   output$goodBadWords<- renderPlot({
